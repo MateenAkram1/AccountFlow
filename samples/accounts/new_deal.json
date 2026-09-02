@@ -1,0 +1,10 @@
+{
+  "deal_id": "demo-new",
+  "company": "Beta Industries",
+  "stage": "appointmentscheduled",
+  "amount": null,
+  "contacts": [
+    { "name": "James Park", "role": "VP Ops", "email": "james@beta.example" }
+  ],
+  "notes": []
+}

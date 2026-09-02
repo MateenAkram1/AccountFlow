@@ -1,0 +1,7 @@
+Alex Rivera: Thanks Sarah for the weekly sync on the Acme web app.
+
+Sarah Chen: API integration is on track. We need the REST spec finalized this week.
+
+Alex: I'll send the API documentation by Friday and update HubSpot with our timeline.
+
+Sarah: Perfect. Phase 1 go-live remains end of March per the SOW.

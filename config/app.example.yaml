@@ -1,0 +1,19 @@
+app:
+  name: AccountFlow OS
+  environment: development
+
+workflows:
+  client_followup:
+    enabled: true
+    steps: [send_email, update_crm, create_tasks]
+  change_request:
+    enabled: true
+    steps: [create_jira_cr, update_crm_risk, draft_cr_email]
+
+integrations:
+  mock: false
+
+features:
+  scope_verifier: true
+  hallucination_grader: true
+  confidence_threshold: 0.7

@@ -1,0 +1,9 @@
+Alex: Scope check-in for Acme Phase 1.
+
+Sarah: The dashboard looks good. Can we add weekly status reports to the shared folder?
+
+Alex: Yes — that's in scope per the SOW. I'll create Jira tasks for the team.
+
+Sarah: Also confirm the API endpoints for our internal tools.
+
+Alex: Will do. Follow-up email coming today.

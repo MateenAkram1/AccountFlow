@@ -1,0 +1,103 @@
+{
+  "version": "1.0",
+  "product": "AccountFlow OS",
+  "rubric_ref": "docs/evaluation/RUBRIC.md",
+  "cases": [
+    {
+      "id": "TC-01",
+      "type": "happy",
+      "title": "Standard client sync — all in scope",
+      "input": { "transcript": "samples/transcripts/tc01_in_scope_sync.txt", "sow": "samples/sow/acme_web_app.txt", "account": "samples/accounts/acme_deal.json" },
+      "expected": { "scope_flags": 0, "email_sent": true, "crm_updated": true, "jira_tasks_min": 2, "hallucination_grade": "pass" },
+      "notes": "Happy path — full execute workflow"
+    },
+    {
+      "id": "TC-02",
+      "type": "happy",
+      "title": "Discovery call — BANT fields extracted",
+      "input": { "transcript": "samples/transcripts/tc02_discovery.txt", "sow": null, "account": "samples/accounts/new_deal.json" },
+      "expected": { "crm_fields_include": ["budget_signal", "timeline"], "scope_verifier": "skipped_no_sow" },
+      "notes": "No SOW yet — early stage deal"
+    },
+    {
+      "id": "TC-03",
+      "type": "edge",
+      "title": "Out-of-scope mobile app request",
+      "input": { "transcript": "samples/transcripts/tc03_scope_creep.txt", "sow": "samples/sow/acme_web_app.txt", "account": "samples/accounts/acme_deal.json" },
+      "expected": { "scope_flags_min": 1, "flag_type": "OUT_OF_SCOPE", "workflow_suggested": "change_request" },
+      "notes": "Scope Verifier core test"
+    },
+    {
+      "id": "TC-04",
+      "type": "edge",
+      "title": "Timeline drift — client wants April, SOW says March",
+      "input": { "transcript": "samples/transcripts/tc04_timeline_drift.txt", "sow": "samples/sow/acme_web_app.txt", "account": "samples/accounts/acme_deal.json" },
+      "expected": { "scope_flags_include_type": "TIMELINE_DRIFT", "crm_conflict_warning": true },
+      "notes": "Conflict detector"
+    },
+    {
+      "id": "TC-05",
+      "type": "edge",
+      "title": "Two speakers same first name — owner ambiguity",
+      "input": { "transcript": "samples/transcripts/tc05_owner_ambiguity.txt", "sow": "samples/sow/acme_web_app.txt", "account": "samples/accounts/acme_deal.json" },
+      "expected": { "task_owner_confidence_below": 0.7, "force_human_review": true },
+      "notes": "Low confidence → approval required"
+    },
+    {
+      "id": "TC-06",
+      "type": "failure",
+      "title": "Hallucinated commitment not in transcript",
+      "input": { "transcript": "samples/transcripts/tc06_short_call.txt", "sow": "samples/sow/acme_web_app.txt", "account": "samples/accounts/acme_deal.json" },
+      "expected": { "hallucination_grader": "fail_or_flag", "execute_blocked_until_edit": true },
+      "notes": "Grader must catch invented deadline"
+    },
+    {
+      "id": "TC-07",
+      "type": "failure",
+      "title": "HubSpot deal stage contradicts transcript",
+      "input": { "transcript": "samples/transcripts/tc07_closing_signals.txt", "sow": "samples/sow/acme_web_app.txt", "account": "samples/accounts/acme_wrong_stage.json" },
+      "expected": { "conflict_detector": true, "user_must_resolve": true },
+      "notes": "CRM says Discovery but transcript says signed"
+    },
+    {
+      "id": "TC-08",
+      "type": "edge",
+      "title": "Audio upload — transcribe then process",
+      "input": { "audio": "samples/audio/tc08_call.m4a", "sow": "samples/sow/acme_web_app.txt", "account": "samples/accounts/acme_deal.json" },
+      "expected": { "transcript_generated": true, "e2e_success": true },
+      "notes": "Ingest path — record/upload"
+    },
+    {
+      "id": "TC-09",
+      "type": "failure",
+      "title": "Gmail API failure — retry then graceful degrade",
+      "input": { "transcript": "samples/transcripts/tc01_in_scope_sync.txt", "mock": "gmail_503" },
+      "expected": { "retry_attempts": 3, "fallback": "save_draft_local", "error_message_clear": true },
+      "notes": "Day 4 hardening"
+    },
+    {
+      "id": "TC-10",
+      "type": "edge",
+      "title": "User rejects email section — partial execute",
+      "input": { "transcript": "samples/transcripts/tc01_in_scope_sync.txt", "user_action": "reject_email_approve_crm_tasks" },
+      "expected": { "email_sent": false, "crm_updated": true, "jira_created": true },
+      "notes": "Partial approval flow"
+    },
+    {
+      "id": "TC-11",
+      "type": "happy",
+      "title": "Change Request workflow end-to-end",
+      "input": { "transcript": "samples/transcripts/tc03_scope_creep.txt", "sow": "samples/sow/acme_web_app.txt", "workflow": "change_request" },
+      "expected": { "jira_cr_created": true, "hubspot_risk_flag": true },
+      "notes": "Scope → workflow execute"
+    },
+    {
+      "id": "TC-12",
+      "type": "failure",
+      "title": "Empty / garbled transcript",
+      "input": { "transcript": "samples/transcripts/tc12_garbled.txt" },
+      "expected": { "error": "insufficient_content", "no_execute": true, "user_message_helpful": true },
+      "notes": "Input validation"
+    }
+  ]
+}

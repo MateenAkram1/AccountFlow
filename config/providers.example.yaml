@@ -1,0 +1,14 @@
+llm:
+  default: gemini
+  providers:
+    gemini:
+      model: gemini-2.0-flash
+    ollama_cloud:
+      base_url: https://ollama.com
+      model: gpt-oss:120b
+
+stt:
+  default: deepgram
+  providers:
+    deepgram:
+      model: nova-2

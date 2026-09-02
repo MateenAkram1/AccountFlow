@@ -1,0 +1,14 @@
+{
+  "deal_id": "demo-001",
+  "company": "Acme Corp",
+  "stage": "discovery",
+  "amount": 40000,
+  "close_date": "2026-03-31",
+  "contacts": [
+    { "name": "Sarah Chen", "role": "CTO", "email": "sarah@acme.example" }
+  ],
+  "notes": [
+    "Feb 10: Discussed API integration timeline",
+    "Open task: Send pricing doc (overdue)"
+  ]
+}

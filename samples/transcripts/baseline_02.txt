@@ -1,0 +1,9 @@
+Alex: Discovery call for Beta Industries integration project.
+
+James Park: Budget is around $55k. We need vendor selection by end of Q1.
+
+Alex: Primary pain point is manual data entry between systems?
+
+James: Yes — API connectivity and reliable sync are must-haves.
+
+Alex: I'll send a proposal and log BANT fields in HubSpot.

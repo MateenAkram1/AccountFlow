@@ -1,0 +1,11 @@
+Alex: Quick discovery call for the new integration project.
+
+Sarah: We're evaluating vendors. Budget is around $60k and we need something by Q2.
+
+Alex: What's the primary pain point today?
+
+Sarah: Manual data entry between systems. We need API connectivity and reliable sync.
+
+Alex: Timeline target?
+
+Sarah: Ideally go-live in April if we move forward this month.

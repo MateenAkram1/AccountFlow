@@ -1,0 +1,11 @@
+Alex: Thanks for the sync on Phase 1.
+
+Sarah: One more thing — can you also build a mobile app with offline mode for our field team?
+
+Alex: That's a bigger scope item. Let me check with our delivery team.
+
+Sarah: It would need iOS and Android. Offline sync when connectivity returns.
+
+Alex: Understood. We'll document this as a potential Phase 2 or change request.
+
+Sarah: Also the API work is progressing well for the web app.

@@ -1,0 +1,61 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #0f1419;
+  color: #e7e9ea;
+}
+
+a {
+  color: #1d9bf0;
+}
+
+.card {
+  background: #16181c;
+  border: 1px solid #2f3336;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+button {
+  background: #1d9bf0;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+button.secondary {
+  background: #2f3336;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #2f3336;
+  background: #0f1419;
+  color: #e7e9ea;
+  margin-bottom: 0.75rem;
+}
+
+.flag-high {
+  border-left: 4px solid #f4212e;
+  padding-left: 0.75rem;
+}
+
+.flag-ok {
+  border-left: 4px solid #00ba7c;
+  padding-left: 0.75rem;
+}
