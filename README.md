@@ -15,7 +15,8 @@ AI OS Mini for the 5-Day Remote AI OS Sprint.
 ```bash
 # 1. Configure secrets
 cp .env.example .env
-# Set LLM_PROVIDER=mock for offline dev, or GEMINI_API_KEY for live
+# Set JWT_SECRET + CREDENTIALS_FERNET_KEY; LLM_PROVIDER=mock for offline demos
+# In the app: Register → Settings → Credentials (OpenAI / Anthropic / Gemini / Groq / Ollama)
 
 # 2. API (use project venv)
 cd apps/api

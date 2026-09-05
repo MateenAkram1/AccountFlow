@@ -15,3 +15,6 @@ apps/api/.venv/
 .DS_Store
 *.log
 .cursor/
+
+agency-agents/
+

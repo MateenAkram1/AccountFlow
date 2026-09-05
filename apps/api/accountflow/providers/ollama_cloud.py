@@ -24,15 +24,21 @@ class OllamaCloudProvider(LLMProvider):
 
     name = "ollama_cloud"
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        api_key: str | None = None,
+        base_url: str | None = None,
+        model: str | None = None,
+    ) -> None:
         settings = get_settings()
-        if not settings.ollama_cloud_api_key:
+        key = (api_key or settings.ollama_cloud_api_key or "").strip()
+        if not key:
             raise ValueError(
                 "OLLAMA_API_KEY (or OLLAMA_CLOUD_API_KEY) is required for ollama_cloud provider"
             )
-        self._host = normalize_ollama_host(settings.ollama_cloud_base_url)
-        self._model = settings.ollama_cloud_model
-        self._api_key = settings.ollama_cloud_api_key
+        self._host = normalize_ollama_host(base_url or settings.ollama_cloud_base_url)
+        self._model = model or settings.ollama_cloud_model
+        self._api_key = key
 
     async def complete_structured(
         self,

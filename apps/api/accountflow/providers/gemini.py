@@ -14,11 +14,12 @@ T = TypeVar("T", bound=BaseModel)
 class GeminiProvider(LLMProvider):
     name = "gemini"
 
-    def __init__(self) -> None:
+    def __init__(self, api_key: str | None = None) -> None:
         settings = get_settings()
-        if not settings.gemini_api_key:
+        key = (api_key or settings.gemini_api_key or "").strip()
+        if not key:
             raise ValueError("GEMINI_API_KEY is required for gemini provider")
-        self._client = genai.Client(api_key=settings.gemini_api_key)
+        self._client = genai.Client(api_key=key)
         self._model = "gemini-2.0-flash"
 
     async def complete_structured(

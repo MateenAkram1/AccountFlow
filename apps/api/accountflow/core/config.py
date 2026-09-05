@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     app_env: str = Field(default="development", alias="APP_ENV")
     database_url: str = Field(default="sqlite:///./data/accountflow.db", alias="DATABASE_URL")
     cors_origins: str = Field(default="http://localhost:3000", alias="CORS_ORIGINS")
+    web_app_url: str = Field(default="http://localhost:3000", alias="WEB_APP_URL")
 
     llm_provider: str = Field(default="gemini", alias="LLM_PROVIDER")
     gemini_api_key: str = Field(default="", alias="GEMINI_API_KEY")
@@ -35,38 +36,117 @@ class Settings(BaseSettings):
         default="llama3.2",
         validation_alias=AliasChoices("OLLAMA_CLOUD_MODEL", "OLLAMA_MODEL"),
     )
+    openai_api_key: str = Field(default="", alias="OPENAI_API_KEY")
+    openai_model: str = Field(default="gpt-4o-mini", alias="OPENAI_MODEL")
+    anthropic_api_key: str = Field(default="", alias="ANTHROPIC_API_KEY")
+    anthropic_model: str = Field(
+        default="claude-sonnet-4-20250514",
+        alias="ANTHROPIC_MODEL",
+    )
+    groq_api_key: str = Field(default="", alias="GROQ_API_KEY")
+    groq_model: str = Field(default="llama-3.3-70b-versatile", alias="GROQ_MODEL")
 
     stt_provider: str = Field(default="deepgram", alias="STT_PROVIDER")
     deepgram_api_key: str = Field(default="", alias="DEEPGRAM_API_KEY")
 
     integrations_mock: bool = Field(default=True, alias="INTEGRATIONS_MOCK")
+
+    hubspot_access_token: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "HUBSPOT_ACCESS_TOKEN",
+            "HUBSPOT_API_TOKEN",
+            "HUBSPOT_SERVICE_KEY",
+        ),
+    )
     hubspot_client_id: str = Field(default="", alias="HUBSPOT_CLIENT_ID")
     hubspot_client_secret: str = Field(default="", alias="HUBSPOT_CLIENT_SECRET")
     hubspot_redirect_uri: str = Field(
         default="http://localhost:8000/auth/hubspot/callback",
         alias="HUBSPOT_REDIRECT_URI",
     )
+
     google_client_id: str = Field(default="", alias="GOOGLE_CLIENT_ID")
     google_client_secret: str = Field(default="", alias="GOOGLE_CLIENT_SECRET")
+    # Single redirect URI registered in Google Cloud Console (login + Gmail share it via state)
     google_redirect_uri: str = Field(
         default="http://localhost:8000/auth/google/callback",
-        alias="GOOGLE_REDIRECT_URI",
+        validation_alias=AliasChoices(
+            "GOOGLE_REDIRECT_URI",
+            "GOOGLE_LOGIN_REDIRECT_URI",
+            "GOOGLE_GMAIL_REDIRECT_URI",
+        ),
     )
-    jira_base_url: str = Field(default="", alias="JIRA_BASE_URL")
+    gmail_access_token: str = Field(
+        default="",
+        validation_alias=AliasChoices("GMAIL_ACCESS_TOKEN", "GOOGLE_ACCESS_TOKEN"),
+    )
+
+    jira_base_url: str = Field(
+        default="",
+        validation_alias=AliasChoices("JIRA_BASE_URL", "JIRA_SITE_URL"),
+    )
     jira_email: str = Field(default="", alias="JIRA_EMAIL")
     jira_api_token: str = Field(default="", alias="JIRA_API_TOKEN")
     jira_project_key: str = Field(default="", alias="JIRA_PROJECT_KEY")
 
+    # Auth + encrypted vault (operator-only; never user-facing)
+    auth_allowlist: str = Field(default="", alias="AUTH_ALLOWLIST")
+    jwt_secret: str = Field(default="", alias="JWT_SECRET")
+    jwt_expiry_hours: int = Field(default=8, alias="JWT_EXPIRY_HOURS")
+    credentials_fernet_key: str = Field(default="", alias="CREDENTIALS_FERNET_KEY")
     confidence_threshold: float = 0.7
 
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
 
+    @property
+    def allowlist_emails(self) -> list[str]:
+        return [e.strip().lower() for e in self.auth_allowlist.split(",") if e.strip()]
+
+    @property
+    def hubspot_configured(self) -> bool:
+        return bool(self.hubspot_access_token.strip())
+
+    @property
+    def jira_configured(self) -> bool:
+        return bool(self.jira_base_url and self.jira_email and self.jira_api_token)
+
+    @property
+    def google_oauth_configured(self) -> bool:
+        return bool(self.google_client_id and self.google_client_secret)
+
+    def require_auth_secrets(self) -> None:
+        """Fail fast when operator crypto secrets are missing outside tests."""
+        if self.app_env.lower() in {"test"}:
+            return
+        missing: list[str] = []
+        if not self.jwt_secret.strip():
+            missing.append("JWT_SECRET")
+        if not self.credentials_fernet_key.strip():
+            missing.append("CREDENTIALS_FERNET_KEY")
+        if missing and self.app_env.lower() not in {"development", "dev"}:
+            raise RuntimeError(
+                f"Missing required auth secrets: {', '.join(missing)}. "
+                "Generate JWT_SECRET and CREDENTIALS_FERNET_KEY before starting."
+            )
+
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    settings = Settings()
+    # Safe local defaults so auth crypto works without operator keys in development/tests.
+    # Production (non-dev) still requires explicit JWT_SECRET + CREDENTIALS_FERNET_KEY.
+    if settings.app_env.lower() in {"development", "dev", "test"}:
+        updates: dict[str, Any] = {}
+        if not settings.jwt_secret.strip():
+            updates["jwt_secret"] = "dev-only-jwt-secret-not-for-production"
+        if not settings.credentials_fernet_key.strip():
+            updates["credentials_fernet_key"] = "h0Wi6NpZKs9zZeEbdl26EtoVziQR6Iq4DDCCwv2VA9c="
+        if updates:
+            settings = settings.model_copy(update=updates)
+    return settings
 
 
 def clear_settings_cache() -> None:

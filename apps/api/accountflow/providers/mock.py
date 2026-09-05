@@ -81,7 +81,7 @@ class MockLLMProvider(LLMProvider):
                     "crm_updates": [
                         {
                             "field": "dealstage",
-                            "value": "proposal",
+                            "value": "presentationscheduled",
                             "evidence_quote": "proposal",
                             "confidence": 0.85,
                         }

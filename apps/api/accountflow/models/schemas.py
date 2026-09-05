@@ -120,6 +120,7 @@ class ApprovedSections(BaseModel):
     crm: bool = False
     tasks: bool = False
     workflow: str | None = None
+    jira_project_key: str | None = None
 
 
 class ApprovedPayload(BaseModel):
@@ -127,6 +128,7 @@ class ApprovedPayload(BaseModel):
     crm_updates: list[CRMUpdate] | None = None
     tasks: list[TaskItem] | None = None
     sections: ApprovedSections = Field(default_factory=ApprovedSections)
+    jira_project_key: str | None = None
 
 
 class ExecutionStepResult(BaseModel):
@@ -161,6 +163,7 @@ class RunStatus(str, Enum):
 
 class RunRecord(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
+    user_id: str | None = None
     status: RunStatus = RunStatus.PENDING
     transcript: Transcript | None = None
     account: AccountDossier | None = None

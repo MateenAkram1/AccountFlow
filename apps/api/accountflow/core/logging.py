@@ -4,21 +4,24 @@ import sys
 from datetime import datetime, timezone
 from typing import Any
 
+from accountflow.core.security import redact_mapping, redact_text
+
 
 class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
+        message = redact_text(record.getMessage())
         payload: dict[str, Any] = {
             "ts": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,
             "logger": record.name,
-            "message": record.getMessage(),
+            "message": message,
         }
         if hasattr(record, "run_id"):
             payload["run_id"] = record.run_id
         if hasattr(record, "extra_data"):
-            payload.update(record.extra_data)
+            payload.update(redact_mapping(record.extra_data))
         if record.exc_info:
-            payload["exc_info"] = self.formatException(record.exc_info)
+            payload["exc_info"] = redact_text(self.formatException(record.exc_info))
         return json.dumps(payload)
 
 

@@ -10,11 +10,12 @@ from accountflow.providers.base import STTProvider
 class DeepgramSTTProvider(STTProvider):
     name = "deepgram"
 
-    def __init__(self) -> None:
+    def __init__(self, api_key: str | None = None) -> None:
         settings = get_settings()
-        if not settings.deepgram_api_key:
+        key = (api_key or settings.deepgram_api_key or "").strip()
+        if not key:
             raise ValueError("DEEPGRAM_API_KEY is required for deepgram STT provider")
-        self._client = DeepgramClient(api_key=settings.deepgram_api_key)
+        self._client = DeepgramClient(api_key=key)
         self._model = "nova-2"
 
     async def transcribe(self, audio_bytes: bytes, mime_type: str = "audio/webm") -> Transcript:

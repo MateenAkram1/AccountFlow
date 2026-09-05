@@ -25,8 +25,14 @@ Python 3.11+ · LangGraph · FastAPI · Next.js 15 · SQLite (dev) / Turso libSQ
 1. No auto-send without approval  
 2. No Zoom/Meet bot  
 3. No Salesforce  
-4. No multi-tenant SaaS  
+4. No org/billing SaaS layer (open register + per-user BYOK)  
 5. English-only  
+
+## Auth & credentials
+- Open registration: Google Sign-In **or** email/password (bcrypt)
+- Session: HttpOnly JWT cookie
+- Per-user Fernet-encrypted credential vault (HubSpot, Jira, LLM, STT); Gmail OAuth tokens encrypted per user
+- No runtime fallback to shared operator `.env` API keys for logged-in users
 
 ## Human vs AI
 - **AI:** transcribe, extract, scope flag, draft  

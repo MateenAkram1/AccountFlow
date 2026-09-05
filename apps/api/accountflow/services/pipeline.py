@@ -17,7 +17,7 @@ from accountflow.models.schemas import (
     Severity,
     TaskItem,
 )
-from accountflow.providers.registry import get_llm
+from accountflow.services.llm_context import get_request_llm
 
 
 class ScopeVerifier:
@@ -45,7 +45,7 @@ class ScopeVerifier:
             "\"sow_reference\": \"... or null\", \"severity\": \"none|low|medium|high\", "
             "\"recommended_workflow\": \"change_request or null\"}]}"
         )
-        llm = get_llm()
+        llm = get_request_llm()
         try:
             raw = await llm.complete_text(self.SYSTEM, user)
             data = json.loads(raw.strip().removeprefix("```json").removesuffix("```").strip())
@@ -103,7 +103,10 @@ class DraftEngine:
     SYSTEM = (
         "You draft post-meeting follow-up artifacts for a B2B account manager. "
         "Use account history. Every task and CRM field must include an evidence quote "
-        "from the transcript. Return valid JSON only."
+        "from the transcript. Return valid JSON only. "
+        "For CRM dealstage values use ONLY HubSpot default stage IDs: "
+        "appointmentscheduled, qualifiedtobuy, presentationscheduled, "
+        "decisionmakerboughtin, contractsent, closedwon, closedlost."
     )
 
     async def draft(
@@ -132,7 +135,7 @@ class DraftEngine:
             "evidence_quotes), crm_updates (field, value, evidence_quote, confidence), "
             "tasks (summary, description, owner, due_date, evidence_quote, confidence)."
         )
-        llm = get_llm()
+        llm = get_request_llm()
         try:
             raw = await llm.complete_text(self.SYSTEM, user)
             data = json.loads(raw.strip().removeprefix("```json").removesuffix("```").strip())
@@ -180,7 +183,7 @@ def _heuristic_draft(
         crm_updates=[
             CRMUpdate(
                 field="dealstage",
-                value="proposal",
+                value="presentationscheduled",
                 evidence_quote=transcript[:80] if transcript else "call discussion",
                 confidence=0.75,
             )
