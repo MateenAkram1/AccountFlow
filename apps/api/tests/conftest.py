@@ -28,6 +28,8 @@ def auth_env(monkeypatch, tmp_path: Path):
     monkeypatch.setenv("JWT_SECRET", "test-jwt-secret-key-for-unit-tests")
     monkeypatch.setenv("CREDENTIALS_FERNET_KEY", Fernet.generate_key().decode())
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path / 'test.db'}")
+    monkeypatch.setenv("TURSO_DATABASE_URL", "")
+    monkeypatch.setenv("TURSO_AUTH_TOKEN", "")
     # Isolate token store
     tokens = tmp_path / "tokens.db"
     monkeypatch.setenv("TEST_TOKENS_PATH", str(tokens))

@@ -1,3 +1,4 @@
+import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -6,13 +7,49 @@ import yaml
 from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-ROOT_DIR = Path(__file__).resolve().parents[4]
+_API_ROOT = Path(__file__).resolve().parents[2]
+_REPO_CANDIDATE = Path(__file__).resolve().parents[4]
+# Monorepo root locally; apps/api root when Vercel Root Directory is apps/api.
+ROOT_DIR = (
+    _REPO_CANDIDATE
+    if (_REPO_CANDIDATE / "samples").is_dir() or (_REPO_CANDIDATE / "config").is_dir()
+    else _API_ROOT
+)
 CONFIG_DIR = ROOT_DIR / "config"
+
+
+def data_dir() -> Path:
+    """Writable data directory (Vercel serverless only allows /tmp writes)."""
+    base = Path("/tmp/accountflow") if os.getenv("VERCEL") else ROOT_DIR / "data"
+    base.mkdir(parents=True, exist_ok=True)
+    return base
+
+
+def resolve_sqlite_file(database_url: str, default_name: str = "accountflow.db") -> Path:
+    if database_url.startswith("sqlite:///"):
+        rel = database_url.removeprefix("sqlite:///")
+        path = Path(rel)
+        if path.is_absolute():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            return path
+        # On Vercel map relative sqlite paths into /tmp.
+        if os.getenv("VERCEL"):
+            target = data_dir() / path.name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            return target
+        target = ROOT_DIR / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        return target
+    target = data_dir() / default_name
+    return target
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=str(ROOT_DIR / ".env"),
+        env_file=(
+            str(ROOT_DIR / ".env"),
+            str(_API_ROOT / ".env"),
+        ),
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -96,6 +133,10 @@ class Settings(BaseSettings):
     jwt_expiry_hours: int = Field(default=8, alias="JWT_EXPIRY_HOURS")
     credentials_fernet_key: str = Field(default="", alias="CREDENTIALS_FERNET_KEY")
     confidence_threshold: float = 0.7
+
+    # Durable SQLite via Turso (preferred on Vercel). When both are set, stores use Turso.
+    turso_database_url: str = Field(default="", alias="TURSO_DATABASE_URL")
+    turso_auth_token: str = Field(default="", alias="TURSO_AUTH_TOKEN")
 
     @property
     def cors_origin_list(self) -> list[str]:

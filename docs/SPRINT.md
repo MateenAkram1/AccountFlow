@@ -130,19 +130,19 @@
 **Key question:** Can another person run, trust, and improve it?
 
 ### Tasks (~8h)
-- [ ] Fresh clone test: 3-step setup in README
-- [ ] Complete `RUNBOOK.md`
-- [ ] Complete case study + AI collaboration note
-- [ ] Record 5-min demo (`DEMO_SCRIPT.md`)
-- [ ] 2-week adoption plan in case study
-- [ ] Submission checklist review
+- [x] Fresh clone test: 3-step setup in README
+- [x] Complete `RUNBOOK.md`
+- [x] Complete case study + AI collaboration note
+- [ ] Record 5-min demo (`DEMO_SCRIPT.md`) — operator records from live URLs + `samples/demo/`
+- [x] 2-week adoption plan in case study
+- [x] Submission checklist review (`docs/submission/` pack)
 
 ### Day 5 outputs (required)
-- [ ] Runnable repo + sample executable path
-- [ ] User README + operator runbook
-- [ ] Architecture, eval, results, limitations documented
-- [ ] Demo video
-- [ ] Portfolio case study
+- [x] Runnable repo + sample executable path
+- [x] User README + operator runbook
+- [x] Architecture, eval, results, limitations documented
+- [ ] Demo video (record using `docs/case-study/DEMO_SCRIPT.md`)
+- [x] Portfolio case study
 
 ---
 

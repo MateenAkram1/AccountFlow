@@ -49,12 +49,15 @@ async def get_current_user(
         ) from exc
 
     user_id = payload.get("sub")
-    if not user_id:
+    email = (payload.get("email") or "").strip().lower()
+    if not user_id or not email:
         raise HTTPException(status_code=401, detail="Invalid session")
 
-    user = get_user_store().get_by_id(str(user_id))
+    store = get_user_store()
+    user = store.get_by_id(str(user_id))
     if not user:
-        raise HTTPException(status_code=401, detail="User not found")
+        # Vercel/serverless SQLite can lose rows between cold starts while the JWT remains valid.
+        user = store.ensure_session_user(user_id=str(user_id), email=email)
     return user_to_current(user)
 
 

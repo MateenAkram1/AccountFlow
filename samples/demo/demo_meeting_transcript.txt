@@ -1,0 +1,284 @@
+================================================================================
+MEETING TRANSCRIPT — Northstar Digital / Meridian Health Systems
+Project: CareOps Portal — Phase 1 Mid-Engagement Sync
+Date: Tuesday, March 10, 2026 · 10:00–10:52 AM EST
+Format: Video conference (recorded with participant consent)
+Facilitator: Alex Rivera, Account Executive / Engagement Lead, Northstar Digital
+================================================================================
+
+[00:00] Alex Rivera (Northstar, AE/PM):
+Good morning everyone. Thanks for making time. For the record, we have consent to
+record this session for notes and follow-up actions. Attendees on our side: myself,
+Alex Rivera, engagement lead; Jordan Hale, delivery lead; and Priya Nair, solutions
+architect. On Meridian: Dana Okonkwo, VP of Digital Operations; Marcus Bell, IT
+Director; and Elena Vargas, Clinical Operations Manager. Agenda is Phase 1 status
+on the CareOps Portal, remaining deliverables against the SOW, risks, and next
+steps. Dana, anything to add before we start?
+
+[00:01] Dana Okonkwo (Meridian, VP Digital Ops):
+That covers it. We also need clarity on go-live timing because our compliance
+window shifted slightly. And I want a written follow-up after this call with owners
+and dates.
+
+[00:02] Alex Rivera:
+Understood. I will send a formal follow-up email to dana.okonkwo@meridianhealth.example
+and copy marcus.bell@meridianhealth.example and elena.vargas@meridianhealth.example
+by end of day tomorrow, Wednesday March 11. Jordan will own the delivery checklist.
+
+[00:03] Jordan Hale (Northstar, Delivery Lead):
+Happy to. Priya and I walked the sprint board this morning. We are on track for the
+web portal modules defined in Phase 1: clinician dashboard, referral intake forms,
+role-based access, and the REST API integration to Meridian’s EHR read APIs.
+
+[00:04] Marcus Bell (Meridian, IT Director):
+The API work looks solid in UAT. We need the OpenAPI documentation package and the
+deployment runbook before security sign-off. Can those land by Friday March 13?
+
+[00:05] Priya Nair (Northstar, Solutions Architect):
+Yes. I will publish the REST API documentation and the deployment runbook to the
+shared Meridian project folder by Friday March 13, 5:00 PM EST. Marcus, please
+confirm your security reviewers are available Monday March 16 for walkthrough.
+
+[00:06] Marcus Bell:
+Confirmed. Security review slot is Monday March 16 at 2:00 PM. Also keep weekly
+status reports going into the shared folder — that is working well for leadership.
+
+[00:07] Alex Rivera:
+Weekly status reports remain in scope and will continue every Friday through
+go-live. Priya already has that on the calendar.
+
+[00:08] Elena Vargas (Meridian, Clinical Ops):
+From the clinical side, the referral intake screens are usable. Nurses want clearer
+validation messages on required fields, but that feels like polish inside the
+current web application scope, not a new product.
+
+[00:09] Jordan Hale:
+Agreed — UX polish on validation messages for the referral intake forms is in
+scope for Phase 1 web application delivery. We will include that in the current
+sprint and target a build for review by Thursday March 12.
+
+[00:10] Dana Okonkwo:
+Good. Now the hard topic: timeline. The SOW targets go-live March 31, 2026. Our
+internal compliance and change-management board cannot finish readiness until
+mid-April. We need go-live moved to April 15, 2026. That is a hard deadline from
+our side.
+
+[00:11] Alex Rivera:
+I hear you. The Statement of Work currently lists Phase 1 go-live target as
+March 31, 2026. Shifting to April 15 is a timeline change. We can re-baseline the
+plan, but we should document it formally so commercial and delivery stay aligned.
+
+[00:12] Jordan Hale:
+From delivery, April 15 is workable if scope stays within Phase 1 web portal and
+API integration. If we add new workstreams, the date slips again. Dana, is April 15
+the clinical hard stop or the IT hard stop?
+
+[00:13] Dana Okonkwo:
+Both. Compliance, training, and IT cutover are aligned to April 15. Please update
+the project plan and confirm in writing.
+
+[00:14] Alex Rivera:
+I will update the project plan and send written confirmation of the proposed
+April 15 go-live in tomorrow’s follow-up email. We will treat March 31 as the
+original SOW milestone and April 15 as the client-requested re-baseline pending
+change-control acknowledgment.
+
+[00:15] Marcus Bell:
+One more ask from the field teams. Our visiting nurses need a mobile application —
+iOS and Android — with offline mode so they can capture notes when connectivity
+drops and sync when they return to the clinic. Can Northstar include that in this
+phase?
+
+[00:16] Alex Rivera:
+Marcus, that is a significant expansion. Phase 1 SOW is web application only.
+Mobile applications for iOS and Android, and offline mode functionality, are
+explicitly excluded from Phase 1. We can scope that as Phase 2 or as a formal
+change request with separate estimate.
+
+[00:17] Dana Okonkwo:
+I understand the exclusion. Still, leadership will push. Can you at least give us
+a high-level change-request outline — rough timeline and cost band — so we can
+decide whether to open Phase 2 now?
+
+[00:18] Jordan Hale:
+We can prepare a change-request brief: native iOS/Android CareOps companion app
+with offline sync. Roughly eight to ten weeks after Phase 1, and ballpark
+seventy-five to ninety-five thousand dollars depending on EHR write-back depth.
+That is outside the Phase 1 fixed fee.
+
+[00:19] Alex Rivera:
+Priya, please draft the Phase 2 / change-request outline for mobile with offline
+mode and send an internal version to me by Thursday March 12. I will sanitize and
+share with Dana after commercial review. We will not commit Phase 1 budget to
+mobile work.
+
+[00:20] Priya Nair:
+Understood. Draft change-request outline by Thursday March 12.
+
+[00:21] Elena Vargas:
+Separately, can the portal send SMS appointment reminders to patients? Our care
+coordinators asked yesterday.
+
+[00:22] Priya Nair:
+SMS patient notifications are not in the Phase 1 SOW. Phase 1 covers in-app and
+email notifications for internal staff only. Patient SMS would be another change
+request — third-party messaging costs and HIPAA review included.
+
+[00:23] Dana Okonkwo:
+Park SMS for later. Do not start it. I do not want scope creep eating April 15.
+
+[00:24] Alex Rivera:
+Logged as out of scope for Phase 1; no commitment. Moving to budget. Phase 1 is a
+fixed fee of one hundred twenty thousand dollars USD. Are we still within that
+envelope on Meridian’s side for approvals?
+
+[00:25] Dana Okonkwo:
+Phase 1 fixed fee is approved. Anything that looks like a change request above
+fifteen thousand dollars needs CFO co-sign. If mobile lands near ninety thousand,
+that will be a separate capital request, not Phase 1.
+
+[00:26] Alex Rivera:
+Clear. We will keep Phase 1 within the one hundred twenty thousand fixed fee and
+route mobile as a separate commercial track. Marcus, any infrastructure blockers?
+
+[00:27] Marcus Bell:
+Staging environment access is ready. Production cutover still needs the
+deployment runbook and a rollback procedure. Also please confirm SSO via our
+existing Okta tenant remains as designed — SAML for staff users.
+
+[00:28] Priya Nair:
+Yes. Staff SSO via SAML against Meridian Okta is in scope for Phase 1
+authentication. Patient-facing consumer identity is not in Phase 1.
+
+[00:29] Jordan Hale:
+Action items I am capturing for our board: one, Priya delivers API docs and
+deployment runbook by Friday March 13; two, UX validation polish on referral
+intake by Thursday March 12; three, Alex sends follow-up email March 11 with
+April 15 timeline confirmation; four, Priya drafts mobile change-request outline
+by March 12; five, security walkthrough March 16 with Marcus’s team.
+
+[00:30] Dana Okonkwo:
+Please also create a Jira-visible task — or whatever you use — for “Meridian
+training materials for care coordinators” due March 27. Elena’s team needs a
+one-hour virtual train-the-trainer session before April 15.
+
+[00:31] Elena Vargas:
+Yes. Train-the-trainer on March 27, then we cascade internally the week of
+April 6. Materials should cover referral intake, dashboard filters, and how to
+escalate portal defects.
+
+[00:32] Jordan Hale:
+I will own “Prepare CareOps train-the-trainer materials and run session” with
+target date March 27, 2026. Elena will be the Meridian training lead. Alex, please
+make sure that lands in the follow-up and in our task tracker.
+
+[00:33] Alex Rivera:
+Will do. Jordan owns training materials and session on March 27; Elena is
+Meridian counterpart. Priya supports with screenshots from UAT.
+
+[00:34] Marcus Bell:
+One ambiguity to clear up: who is the single Northstar owner for production
+incident response in the first two weeks after go-live? I have heard both Jordan
+and Priya mentioned.
+
+[00:35] Jordan Hale:
+I am the primary on-call engagement owner for the first fourteen days post
+go-live. Priya is secondary for API and integration defects. Please route P1
+pages to me.
+
+[00:36] Alex Rivera:
+Thanks — that removes the owner ambiguity. Jordan primary, Priya secondary for
+hypercare.
+
+[00:37] Dana Okonkwo:
+Commercially, assuming April 15 holds and Phase 1 scope stays clean, we are ready
+to move this engagement from active delivery into the expansion conversation for
+Phase 2 after go-live. Legal already reviewed the Phase 1 MSA. No contract
+blockers on Phase 1 remaining work.
+
+[00:38] Alex Rivera:
+That is helpful closing signal. I will update our CRM deal notes to reflect
+timeline re-baseline discussion to April 15, continued Phase 1 delivery, and
+Phase 2 mobile interest as a separate opportunity. Deal amount for Phase 1
+remains one hundred twenty thousand. I will not change stage to closed-won until
+go-live acceptance is signed.
+
+[00:39] Dana Okonkwo:
+Correct. Do not mark us closed-won yet. We are still in delivery / acceptance.
+After April 15 acceptance certificate, then commercial closeout for Phase 1.
+
+[00:40] Alex Rivera:
+Understood. CRM stage stays in delivery/acceptance; close date target moves in
+our internal notes toward April 15 pending formal change acknowledgment.
+
+[00:41] Priya Nair:
+Technical risk log: EHR rate limits in production are lower than staging. We are
+adding caching on read-heavy dashboard widgets. Still within API integration
+scope. No new vendors required.
+
+[00:42] Marcus Bell:
+Appreciate that. Please call out caching behavior in the API documentation so
+security understands TTL assumptions.
+
+[00:43] Priya Nair:
+I will add a short “caching and rate-limit handling” section to the API docs due
+Friday.
+
+[00:44] Elena Vargas:
+Last clinical ask — can we export referral lists to CSV from the dashboard? That
+feels like a small report feature.
+
+[00:45] Jordan Hale:
+CSV export on the clinician dashboard referral list is a reasonable Phase 1
+enhancement if we keep it to current fields already on screen. We will include a
+simple CSV export in the March 12 build for Elena’s review. If you later want
+custom columns or scheduled exports, that becomes a change request.
+
+[00:46] Elena Vargas:
+Simple CSV of on-screen fields is enough. Thank you.
+
+[00:47] Alex Rivera:
+Summarizing decisions for the record. In scope and continuing: CareOps web
+portal, REST API integration to EHR read APIs, SAML SSO via Okta, weekly status
+reports, API documentation, deployment runbook, referral intake UX polish, CSV
+export of on-screen referral fields, train-the-trainer on March 27. Timeline:
+client requests go-live shift from March 31 SOW target to April 15, 2026 — to be
+confirmed in writing. Out of scope for Phase 1 / change request path: native
+iOS and Android mobile apps, offline mode, patient SMS notifications. Budget:
+Phase 1 remains fixed fee one hundred twenty thousand USD; mobile estimate
+seventy-five to ninety-five thousand as separate request needing CFO path if
+above fifteen thousand incremental governance threshold.
+
+[00:48] Dana Okonkwo:
+Accurate summary. Please send the email tomorrow with that structure, owners, and
+dates. Copy legal only if the April 15 letter needs a formal change order; for
+now a written confirmation from you and acceptance reply from me is enough to
+re-baseline delivery.
+
+[00:49] Alex Rivera:
+I will draft the follow-up as an external email: subject line along the lines of
+“Meridian CareOps Phase 1 — sync notes, April 15 re-baseline, and action items.”
+Body will list owners, dates, in-scope confirmations, and explicit out-of-scope
+items. Jordan and Priya will get an internal copy for execution.
+
+[00:50] Jordan Hale:
+I will create tracker tasks today for: API docs and runbook due March 13; referral
+UX polish and CSV export due March 12; train-the-trainer due March 27; hypercare
+primary ownership named to me. Priya’s change-request outline for mobile remains
+internal until Alex releases it.
+
+[00:51] Dana Okonkwo:
+Perfect. Thanks everyone. Looking forward to the Friday docs drop and Monday’s
+security review.
+
+[00:52] Alex Rivera:
+Thank you all. Recording stops here. Follow-up email goes out Wednesday March 11.
+Have a good rest of your day.
+
+================================================================================
+END OF TRANSCRIPT
+Participants:
+  Northstar Digital — Alex Rivera (AE/PM), Jordan Hale (Delivery), Priya Nair (Architect)
+  Meridian Health Systems — Dana Okonkwo (VP Digital Ops), Marcus Bell (IT), Elena Vargas (Clinical Ops)
+Consent: Recording approved at open.
+================================================================================

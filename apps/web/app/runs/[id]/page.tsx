@@ -31,8 +31,24 @@ export default function RunDetailPage() {
   const [run, setRun] = useState<any>(null);
   const [draft, setDraft] = useState<ApprovalDraft | null>(null);
   const [jiraProjects, setJiraProjects] = useState<{ key: string; name?: string }[]>([]);
+  const [pipelines, setPipelines] = useState<
+    { id: string; label: string; stages: { id: string; label: string }[] }[]
+  >([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const allStages = pipelines.flatMap((p) =>
+    p.stages.map((s) => ({ ...s, pipelineLabel: p.label, pipelineId: p.id }))
+  );
+  const stageLabel = (id: string) =>
+    allStages.find((s) => s.id === id)?.label || id;
+
+  const crmFieldOptions = [
+    { id: "dealstage", label: "Deal stage" },
+    { id: "amount", label: "Amount" },
+    { id: "closedate", label: "Close date" },
+    { id: "dealname", label: "Deal name" },
+  ];
 
   const load = async () => {
     const data = await apiFetch<any>(`/runs/${runId}`);
@@ -52,6 +68,44 @@ export default function RunDetailPage() {
         }
       } catch {
         // Jira may be unavailable — tasks can still be reviewed
+      }
+      try {
+        const pipes = await apiFetch<{
+          pipelines: { id: string; label: string; stages: { id: string; label: string }[] }[];
+        }>("/integrations/hubspot/pipelines");
+        setPipelines(pipes.pipelines || []);
+        // Normalize AI-suggested stage labels to HubSpot stage IDs when possible
+        const stages = (pipes.pipelines || []).flatMap((p) => p.stages);
+        next.crm_updates = next.crm_updates.map((crm) => {
+          if (crm.field !== "dealstage" && crm.field !== "stage") return crm;
+          const raw = (crm.value || "").trim();
+          const byId = stages.find((s) => s.id === raw);
+          if (byId) return { ...crm, field: "dealstage", value: byId.id };
+          const norm = raw.toLowerCase().replace(/[\s_-]+/g, "");
+          const byLabel = stages.find(
+            (s) =>
+              s.label.toLowerCase().replace(/[\s_-]+/g, "") === norm ||
+              s.id.toLowerCase().replace(/[\s_-]+/g, "") === norm
+          );
+          if (byLabel) return { ...crm, field: "dealstage", value: byLabel.id };
+          // Common aliases
+          const aliases: Record<string, string[]> = {
+            presentationscheduled: ["proposal", "presentation", "demo"],
+            appointmentscheduled: ["discovery", "appointment"],
+            qualifiedtobuy: ["qualified"],
+            contractsent: ["contract"],
+            closedwon: ["won", "closedwon"],
+            closedlost: ["lost", "closedlost"],
+          };
+          for (const [stageId, keys] of Object.entries(aliases)) {
+            if (keys.some((k) => norm.includes(k)) && stages.some((s) => s.id === stageId)) {
+              return { ...crm, field: "dealstage", value: stageId };
+            }
+          }
+          return { ...crm, field: "dealstage" };
+        });
+      } catch {
+        setPipelines([]);
       }
       setDraft(next);
     }
@@ -324,25 +378,100 @@ export default function RunDetailPage() {
                   <div className="grid-2-tight">
                     <div>
                       <label>Field</label>
-                      <input
-                        value={crm.field}
+                      <select
+                        value={
+                          crmFieldOptions.some((f) => f.id === crm.field)
+                            ? crm.field
+                            : crm.field === "stage"
+                              ? "dealstage"
+                              : "dealstage"
+                        }
                         onChange={(e) => {
                           const next = [...draft.crm_updates];
-                          next[i] = { ...next[i], field: e.target.value };
+                          const field = e.target.value;
+                          let value = next[i].value;
+                          if (field === "dealstage") {
+                            const match = allStages.find((s) => s.id === value);
+                            value = match?.id || allStages[0]?.id || value;
+                          }
+                          next[i] = { ...next[i], field, value };
                           setDraft({ ...draft, crm_updates: next });
                         }}
-                      />
+                      >
+                        {crmFieldOptions.map((f) => (
+                          <option key={f.id} value={f.id}>
+                            {f.label}
+                          </option>
+                        ))}
+                        {!crmFieldOptions.some((f) => f.id === crm.field) &&
+                          crm.field !== "stage" && (
+                            <option value={crm.field}>{crm.field}</option>
+                          )}
+                      </select>
                     </div>
                     <div>
                       <label>Value</label>
-                      <input
-                        value={crm.value}
-                        onChange={(e) => {
-                          const next = [...draft.crm_updates];
-                          next[i] = { ...next[i], value: e.target.value };
-                          setDraft({ ...draft, crm_updates: next });
-                        }}
-                      />
+                      {crm.field === "dealstage" || crm.field === "stage" ? (
+                        <select
+                          value={
+                            allStages.some((s) => s.id === crm.value)
+                              ? crm.value
+                              : allStages[0]?.id || crm.value
+                          }
+                          onChange={(e) => {
+                            const next = [...draft.crm_updates];
+                            next[i] = {
+                              ...next[i],
+                              field: "dealstage",
+                              value: e.target.value,
+                            };
+                            setDraft({ ...draft, crm_updates: next });
+                          }}
+                        >
+                          {allStages.map((s) => (
+                            <option key={`${s.pipelineId}-${s.id}`} value={s.id}>
+                              {s.label}
+                              {pipelines.length > 1 ? ` (${s.pipelineLabel})` : ""}
+                            </option>
+                          ))}
+                          {allStages.length === 0 && (
+                            <option value={crm.value}>
+                              {stageLabel(crm.value) || crm.value || "Loading stages…"}
+                            </option>
+                          )}
+                        </select>
+                      ) : crm.field === "amount" ? (
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          value={crm.value.replace(/[$,]/g, "")}
+                          onChange={(e) => {
+                            const next = [...draft.crm_updates];
+                            next[i] = { ...next[i], value: e.target.value };
+                            setDraft({ ...draft, crm_updates: next });
+                          }}
+                          placeholder="120000"
+                        />
+                      ) : crm.field === "closedate" ? (
+                        <input
+                          type="date"
+                          value={crm.value.slice(0, 10)}
+                          onChange={(e) => {
+                            const next = [...draft.crm_updates];
+                            next[i] = { ...next[i], value: e.target.value };
+                            setDraft({ ...draft, crm_updates: next });
+                          }}
+                        />
+                      ) : (
+                        <input
+                          value={crm.value}
+                          onChange={(e) => {
+                            const next = [...draft.crm_updates];
+                            next[i] = { ...next[i], value: e.target.value };
+                            setDraft({ ...draft, crm_updates: next });
+                          }}
+                        />
+                      )}
                     </div>
                   </div>
                   <p className="evidence muted">

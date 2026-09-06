@@ -6,7 +6,7 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, StateGraph
 from langgraph.types import interrupt
 
-from accountflow.core.config import ROOT_DIR
+from accountflow.core.config import data_dir
 from accountflow.db.store import get_run_store
 from accountflow.models.schemas import (
     ActionPackage,
@@ -73,7 +73,7 @@ def build_graph():
     graph.add_edge("grade", "approve")
     graph.add_edge("approve", END)
 
-    db_path = ROOT_DIR / "data" / "checkpoints.db"
+    db_path = data_dir() / "checkpoints.db"
     db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(db_path), check_same_thread=False)
     checkpointer = SqliteSaver(conn)

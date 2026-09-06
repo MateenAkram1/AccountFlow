@@ -148,76 +148,156 @@ class HubSpotClient:
                         )
         return ExecutionStepResult(step="update_crm", success=False, error="Unknown error")
 
-    async def list_deals(self, limit: int = 20) -> list[dict]:
+    async def list_deals(self, limit: int = 100) -> list[dict]:
+        if not self._token:
+            raise ValueError("HubSpot token missing")
+        headers = {"Authorization": f"Bearer {self._token}"}
+        deals: list[dict] = []
+        after: str | None = None
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            while len(deals) < limit:
+                params: dict[str, str | int] = {
+                    "limit": min(100, limit - len(deals)),
+                    "properties": "dealname,dealstage,amount,closedate,pipeline",
+                }
+                if after:
+                    params["after"] = after
+                resp = await client.get(
+                    f"{self._base}/crm/v3/objects/deals",
+                    headers=headers,
+                    params=params,
+                )
+                resp.raise_for_status()
+                payload = resp.json()
+                for row in payload.get("results", []):
+                    props = row.get("properties", {})
+                    deals.append(
+                        {
+                            "id": row.get("id"),
+                            "name": props.get("dealname") or f"Deal {row.get('id')}",
+                            "stage": props.get("dealstage"),
+                            "amount": props.get("amount"),
+                            "close_date": props.get("closedate"),
+                            "pipeline": props.get("pipeline"),
+                        }
+                    )
+                after = (payload.get("paging") or {}).get("next", {}).get("after")
+                if not after:
+                    break
+            return deals
+
+    async def list_pipelines(self) -> list[dict]:
+        """Return deal pipelines with stages (labels + HubSpot stage IDs)."""
+        settings = get_settings()
+        if settings.integrations_mock:
+            return _mock_pipelines()
         if not self._token:
             raise ValueError("HubSpot token missing")
         headers = {"Authorization": f"Bearer {self._token}"}
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.get(
-                f"{self._base}/crm/v3/objects/deals",
+                f"{self._base}/crm/v3/pipelines/deals",
                 headers=headers,
-                params={
-                    "limit": limit,
-                    "properties": "dealname,dealstage,amount,closedate",
-                },
             )
             resp.raise_for_status()
-            deals = []
-            for row in resp.json().get("results", []):
-                props = row.get("properties", {})
-                deals.append(
+            pipelines = []
+            for pipe in resp.json().get("results", []):
+                stages = []
+                for stage in sorted(
+                    pipe.get("stages", []),
+                    key=lambda s: s.get("displayOrder", 0),
+                ):
+                    stages.append(
+                        {
+                            "id": stage.get("id"),
+                            "label": stage.get("label") or stage.get("id"),
+                            "display_order": stage.get("displayOrder"),
+                            "metadata": stage.get("metadata") or {},
+                        }
+                    )
+                pipelines.append(
                     {
-                        "id": row.get("id"),
-                        "name": props.get("dealname") or f"Deal {row.get('id')}",
-                        "stage": props.get("dealstage"),
-                        "amount": props.get("amount"),
+                        "id": pipe.get("id"),
+                        "label": pipe.get("label") or pipe.get("id"),
+                        "display_order": pipe.get("displayOrder"),
+                        "stages": stages,
                     }
                 )
-            return deals
+            pipelines.sort(key=lambda p: p.get("display_order") or 0)
+            return pipelines
 
-    async def ensure_demo_deal(self) -> dict:
-        """Create a sample deal if the portal has none — enables live CRM execute."""
-        existing = await self.list_deals(limit=5)
-        if existing:
-            return existing[0]
+    async def create_deal(
+        self,
+        *,
+        name: str,
+        amount: str | None = None,
+        stage_id: str | None = None,
+        pipeline_id: str | None = None,
+        close_date: str | None = None,
+    ) -> dict:
+        """Always create a new HubSpot deal (does not reuse an existing one)."""
+        settings = get_settings()
+        if settings.integrations_mock:
+            return {
+                "id": f"demo-{name[:12].replace(' ', '-').lower() or 'new'}",
+                "name": name,
+                "stage": stage_id or "appointmentscheduled",
+                "amount": amount,
+                "pipeline": pipeline_id or "default",
+                "created": True,
+            }
         if not self._token:
             raise ValueError("HubSpot token missing")
+
+        deal_name = (name or "").strip() or "AccountFlow deal"
+        properties: dict[str, str] = {"dealname": deal_name}
+        if amount and str(amount).strip():
+            properties["amount"] = str(amount).replace("$", "").replace(",", "").strip()
+        if stage_id and stage_id.strip():
+            properties["dealstage"] = stage_id.strip()
+        if pipeline_id and pipeline_id.strip():
+            properties["pipeline"] = pipeline_id.strip()
+        if close_date and close_date.strip():
+            properties["closedate"] = close_date.strip()
+
         headers = {
             "Authorization": f"Bearer {self._token}",
             "Content-Type": "application/json",
-        }
-        payload = {
-            "properties": {
-                "dealname": "AccountFlow OS — Acme Corp",
-                "dealstage": "appointmentscheduled",
-                "amount": "40000",
-                "pipeline": "default",
-            }
         }
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(
                 f"{self._base}/crm/v3/objects/deals",
                 headers=headers,
-                json=payload,
+                json={"properties": properties},
             )
-            if resp.status_code >= 400:
-                # Retry without pipeline if portal uses different pipelines
-                payload["properties"].pop("pipeline", None)
+            if resp.status_code >= 400 and "pipeline" in properties:
+                # Some portals reject unknown pipeline ids — retry without it
+                properties.pop("pipeline", None)
                 resp = await client.post(
                     f"{self._base}/crm/v3/objects/deals",
                     headers=headers,
-                    json=payload,
+                    json={"properties": properties},
                 )
             resp.raise_for_status()
             data = resp.json()
             props = data.get("properties", {})
             return {
                 "id": data.get("id"),
-                "name": props.get("dealname") or "AccountFlow OS — Acme Corp",
+                "name": props.get("dealname") or deal_name,
                 "stage": props.get("dealstage"),
                 "amount": props.get("amount"),
+                "pipeline": props.get("pipeline"),
                 "created": True,
             }
+
+    async def ensure_demo_deal(self) -> dict:
+        """Create a sample deal for demos (always creates a new deal)."""
+        return await self.create_deal(
+            name="AccountFlow OS — Acme Corp",
+            amount="40000",
+            stage_id="appointmentscheduled",
+            pipeline_id="default",
+        )
 
     async def ping(self) -> dict:
         """Verify token works."""
@@ -292,13 +372,14 @@ def _normalize_hubspot_properties(updates: list[CRMUpdate]) -> dict[str, str]:
             if not mapped and value.lower() in _VALID_DEAL_STAGES:
                 mapped = value.lower()
             if not mapped:
-                # Best-effort: treat proposal-like words as presentation stage
+                # Best-effort aliases for LLM-invented labels
                 if "propos" in stage_key or "present" in stage_key:
                     mapped = "presentationscheduled"
                 elif "close" in stage_key and "won" in stage_key:
                     mapped = "closedwon"
                 else:
-                    mapped = "qualifiedtobuy"
+                    # Trust HubSpot stage IDs from pipeline dropdowns (custom pipelines)
+                    mapped = value
             props["dealstage"] = mapped
         elif field in {"amount", "dealamount", "value"}:
             cleaned = value.replace("$", "").replace(",", "").strip()
@@ -313,6 +394,25 @@ def _normalize_hubspot_properties(updates: list[CRMUpdate]) -> dict[str, str]:
         # they aren't HubSpot deal properties and cause 400s.
 
     return props
+
+
+def _mock_pipelines() -> list[dict]:
+    return [
+        {
+            "id": "default",
+            "label": "Sales Pipeline",
+            "display_order": 0,
+            "stages": [
+                {"id": "appointmentscheduled", "label": "Appointment Scheduled", "display_order": 0},
+                {"id": "qualifiedtobuy", "label": "Qualified To Buy", "display_order": 1},
+                {"id": "presentationscheduled", "label": "Presentation Scheduled", "display_order": 2},
+                {"id": "decisionmakerboughtin", "label": "Decision Maker Bought-In", "display_order": 3},
+                {"id": "contractsent", "label": "Contract Sent", "display_order": 4},
+                {"id": "closedwon", "label": "Closed Won", "display_order": 5},
+                {"id": "closedlost", "label": "Closed Lost", "display_order": 6},
+            ],
+        }
+    ]
 
 
 def _mock_account(deal_id: str) -> AccountDossier:

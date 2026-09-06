@@ -1,29 +1,18 @@
 import json
-import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-from accountflow.core.config import ROOT_DIR, get_settings
+from accountflow.db.connection import connect_db
 from accountflow.models.schemas import RunRecord
 
 
 class RunStore:
     def __init__(self, db_path: Path | None = None) -> None:
-        settings = get_settings()
-        if db_path:
-            self._path = db_path
-        elif settings.database_url.startswith("sqlite:///"):
-            rel = settings.database_url.replace("sqlite:///", "")
-            self._path = ROOT_DIR / rel
-        else:
-            self._path = ROOT_DIR / "data" / "accountflow.db"
-        self._path.parent.mkdir(parents=True, exist_ok=True)
+        self._db_path = db_path
         self._init_db()
 
-    def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self._path)
-        conn.row_factory = sqlite3.Row
-        return conn
+    def _connect(self):
+        return connect_db(db_path=self._db_path)
 
     def _init_db(self) -> None:
         with self._connect() as conn:

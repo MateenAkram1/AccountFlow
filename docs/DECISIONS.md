@@ -12,7 +12,7 @@ Time call end → email sent + CRM updated (**target <8 min** vs 30–40 manual)
 ## Stack
 Python 3.11+ · LangGraph · FastAPI · Next.js 15 · SQLite (dev) / Turso libSQL (prod)  
 **AI:** Gemini (default LLM) · Ollama Cloud (fallback) · Deepgram (STT)  
-**Deploy:** Vercel (web) · Render free (API)
+**Deploy:** Vercel (web + API) · Turso libSQL (prod DB)
 
 ## Integrations
 | Ingest | Execute |

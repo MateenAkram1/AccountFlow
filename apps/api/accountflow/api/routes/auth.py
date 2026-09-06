@@ -13,6 +13,7 @@ from accountflow.api.deps import CurrentUser, get_current_user, require_csrf
 from accountflow.core.config import get_settings
 from accountflow.core.security import (
     SESSION_COOKIE,
+    cookie_samesite,
     cookie_secure,
     create_access_token,
     decode_access_token,
@@ -55,15 +56,19 @@ def _set_session_cookie(response: Response, user_id: str, email: str) -> None:
         value=token,
         httponly=True,
         secure=cookie_secure(),
-        samesite="lax",
+        samesite=cookie_samesite(),
         max_age=get_settings().jwt_expiry_hours * 3600,
         path="/",
     )
 
 
 def _clear_session_cookie(response: Response) -> None:
-    response.delete_cookie(key=SESSION_COOKIE, path="/")
-
+    response.delete_cookie(
+        key=SESSION_COOKIE,
+        path="/",
+        secure=cookie_secure(),
+        samesite=cookie_samesite(),
+    )
 
 @router.post("/register", response_model=MeResponse)
 async def register(body: RegisterRequest, response: Response):

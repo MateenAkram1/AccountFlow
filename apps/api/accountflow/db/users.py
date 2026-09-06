@@ -1,15 +1,15 @@
-"""Users and invite allowlist (SQLite)."""
+"""Users and invite allowlist (SQLite / Turso)."""
 
 from __future__ import annotations
 
-import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 from uuid import uuid4
 
-from accountflow.core.config import ROOT_DIR, get_settings
+from accountflow.core.config import get_settings
+from accountflow.db.connection import connect_db
 
 AuthProvider = Literal["password", "google", "both"]
 
@@ -24,26 +24,13 @@ class User:
     created_at: str
 
 
-def _db_path(db_path: Path | None = None) -> Path:
-    if db_path:
-        return db_path
-    settings = get_settings()
-    if settings.database_url.startswith("sqlite:///"):
-        rel = settings.database_url.replace("sqlite:///", "")
-        return ROOT_DIR / rel
-    return ROOT_DIR / "data" / "accountflow.db"
-
-
 class UserStore:
     def __init__(self, db_path: Path | None = None) -> None:
-        self._path = _db_path(db_path)
-        self._path.parent.mkdir(parents=True, exist_ok=True)
+        self._db_path = db_path
         self._init_db()
 
-    def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self._path)
-        conn.row_factory = sqlite3.Row
-        return conn
+    def _connect(self):
+        return connect_db(db_path=self._db_path)
 
     def _init_db(self) -> None:
         with self._connect() as conn:
@@ -106,7 +93,7 @@ class UserStore:
                 (email_n, datetime.now(timezone.utc).isoformat(), created_by),
             )
 
-    def _row_to_user(self, row: sqlite3.Row) -> User:
+    def _row_to_user(self, row: Any) -> User:
         return User(
             id=row["id"],
             email=row["email"],
@@ -128,6 +115,40 @@ class UserStore:
                 "SELECT * FROM users WHERE email = ?", (email_n,)
             ).fetchone()
         return self._row_to_user(row) if row else None
+
+    def ensure_session_user(self, *, user_id: str, email: str, name: str | None = None) -> User:
+        """Restore a user row from a valid JWT (needed when SQLite is ephemeral)."""
+        existing = self.get_by_id(user_id)
+        if existing:
+            return existing
+        email_n = email.strip().lower()
+        by_email = self.get_by_email(email_n)
+        if by_email:
+            return by_email
+        user = User(
+            id=user_id,
+            email=email_n,
+            password_hash=None,
+            name=name,
+            auth_provider="password",
+            created_at=datetime.now(timezone.utc).isoformat(),
+        )
+        with self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO users (id, email, password_hash, name, auth_provider, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    user.id,
+                    user.email,
+                    user.password_hash,
+                    user.name,
+                    user.auth_provider,
+                    user.created_at,
+                ),
+            )
+        return user
 
     def create_password_user(
         self, *, email: str, password_hash: str, name: str | None = None

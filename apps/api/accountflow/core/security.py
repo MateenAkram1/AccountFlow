@@ -111,3 +111,8 @@ def redact_mapping(data: Any) -> Any:
 
 def cookie_secure() -> bool:
     return get_settings().app_env.lower() not in {"development", "test", "dev"}
+
+
+def cookie_samesite() -> str:
+    """Cross-site Vercel web ↔ API needs SameSite=None (requires Secure)."""
+    return "none" if cookie_secure() else "lax"

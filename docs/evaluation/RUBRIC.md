@@ -54,15 +54,17 @@
 
 ---
 
-## Baseline comparison table (fill Day 4)
+## Baseline comparison table
+
+Filled from `docs/evaluation/BASELINE.md` (Day 1 proxy + Day 4 AccountFlow mock path):
 
 | Metric | Manual | Naive ChatGPT | AccountFlow OS |
 |--------|--------|---------------|----------------|
-| Time to email + CRM (min) | | | |
-| Scope issues caught | | | |
-| CRM fields correct (%) | | | |
-| Human edits required | N/A | | |
-| Cost per run ($) | $0 | | |
+| Time to email + CRM (min) | **38** | **22** | **6** |
+| Scope issues caught | Y | N | Y |
+| CRM fields correct (/5) | 4.0 | 3.0 | 4.5 |
+| Human edits / approval | Full manual | Paste + edit | Approve (~1 min) |
+| Cost per run ($) | $0 tooling / high labor | ChatGPT + paste labor | **Not metered in v1** |
 
 ---
 

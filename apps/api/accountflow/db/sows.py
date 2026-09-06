@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 from uuid import uuid4
 
-from accountflow.core.config import ROOT_DIR, get_settings
+from accountflow.db.connection import connect_db
 
 
 @dataclass
@@ -22,26 +22,13 @@ class SavedSow:
     updated_at: str
 
 
-def _db_path(db_path: Path | None = None) -> Path:
-    if db_path:
-        return db_path
-    settings = get_settings()
-    if settings.database_url.startswith("sqlite:///"):
-        rel = settings.database_url.replace("sqlite:///", "")
-        return ROOT_DIR / rel
-    return ROOT_DIR / "data" / "accountflow.db"
-
-
 class SowStore:
     def __init__(self, db_path: Path | None = None) -> None:
-        self._path = _db_path(db_path)
-        self._path.parent.mkdir(parents=True, exist_ok=True)
+        self._db_path = db_path
         self._init_db()
 
-    def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self._path)
-        conn.row_factory = sqlite3.Row
-        return conn
+    def _connect(self):
+        return connect_db(db_path=self._db_path)
 
     def _init_db(self) -> None:
         with self._connect() as conn:
@@ -62,7 +49,7 @@ class SowStore:
                 "CREATE INDEX IF NOT EXISTS idx_sows_user ON saved_sows(user_id, updated_at DESC)"
             )
 
-    def _row(self, row: sqlite3.Row) -> SavedSow:
+    def _row(self, row: Any) -> SavedSow:
         return SavedSow(
             id=row["id"],
             user_id=row["user_id"],

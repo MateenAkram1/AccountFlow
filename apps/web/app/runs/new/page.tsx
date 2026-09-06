@@ -5,7 +5,17 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { apiFetch, createRun } from "@/lib/api";
 
-type Deal = { id: string; name: string; stage?: string; amount?: string };
+type Deal = {
+  id: string;
+  name: string;
+  stage?: string;
+  amount?: string;
+  pipeline?: string;
+  close_date?: string;
+};
+
+type PipelineStage = { id: string; label: string; display_order?: number };
+type Pipeline = { id: string; label: string; stages: PipelineStage[] };
 
 type SowSummary = {
   id: string;
@@ -27,6 +37,12 @@ export default function NewRunPage() {
   const [sowFile, setSowFile] = useState<File | null>(null);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [dealId, setDealId] = useState("");
+  const [pipelines, setPipelines] = useState<Pipeline[]>([]);
+  const [newDealName, setNewDealName] = useState("");
+  const [newDealAmount, setNewDealAmount] = useState("");
+  const [newDealPipelineId, setNewDealPipelineId] = useState("");
+  const [newDealStageId, setNewDealStageId] = useState("");
+  const [showCreateDeal, setShowCreateDeal] = useState(false);
   const [recording, setRecording] = useState(false);
   const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -35,14 +51,36 @@ export default function NewRunPage() {
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const chunks = useRef<Blob[]>([]);
 
+  const activePipeline =
+    pipelines.find((p) => p.id === newDealPipelineId) || pipelines[0] || null;
+  const stageOptions = activePipeline?.stages || [];
+
+  const loadPipelines = async () => {
+    try {
+      const data = await apiFetch<{ pipelines: Pipeline[] }>("/integrations/hubspot/pipelines");
+      const pipes = data.pipelines || [];
+      setPipelines(pipes);
+      if (pipes.length) {
+        const first = pipes[0];
+        setNewDealPipelineId((prev) => prev || first.id);
+        setNewDealStageId((prev) => prev || first.stages[0]?.id || "");
+      }
+    } catch {
+      setPipelines([]);
+    }
+  };
+
   const loadDeals = async () => {
     setLoadingDeals(true);
     setError("");
     try {
       const data = await apiFetch<{ deals: Deal[] }>("/integrations/hubspot/deals");
-      setDeals(data.deals || []);
-      if (data.deals?.length && !dealId) {
-        setDealId(data.deals[0].id);
+      const list = data.deals || [];
+      setDeals(list);
+      if (list.length && !dealId) {
+        setDealId(list[0].id);
+      } else if (dealId && list.length && !list.some((d) => d.id === dealId)) {
+        setDealId(list[0].id);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load HubSpot deals");
@@ -57,6 +95,36 @@ export default function NewRunPage() {
       setSavedSows(list);
     } catch {
       setSavedSows([]);
+    }
+  };
+
+  const createDeal = async () => {
+    if (!newDealName.trim()) {
+      setError("Enter a deal name to create a HubSpot deal.");
+      return;
+    }
+    setLoadingDeals(true);
+    setError("");
+    try {
+      const deal = await apiFetch<Deal & { created?: boolean }>("/integrations/hubspot/deals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newDealName.trim(),
+          amount: newDealAmount.trim() || null,
+          pipeline_id: newDealPipelineId || null,
+          stage_id: newDealStageId || null,
+        }),
+      });
+      await loadDeals();
+      if (deal.id) setDealId(deal.id);
+      setShowCreateDeal(false);
+      setNewDealName("");
+      setNewDealAmount("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to create HubSpot deal");
+    } finally {
+      setLoadingDeals(false);
     }
   };
 
@@ -79,8 +147,16 @@ export default function NewRunPage() {
 
   useEffect(() => {
     loadDeals();
+    loadPipelines();
     loadSows();
   }, []);
+
+  useEffect(() => {
+    if (!activePipeline) return;
+    if (!activePipeline.stages.some((s) => s.id === newDealStageId)) {
+      setNewDealStageId(activePipeline.stages[0]?.id || "");
+    }
+  }, [activePipeline, newDealStageId]);
 
   const pickSavedSow = async (id: string) => {
     setSelectedSowId(id);
@@ -223,35 +299,98 @@ export default function NewRunPage() {
       <div className="card">
         <h3>HubSpot deal</h3>
         <p className="muted" style={{ marginTop: 0 }}>
-          CRM execute needs a <strong>real HubSpot deal id</strong> when mock mode is off.
+          Select any existing deal, or create a new one. CRM execute needs a real HubSpot deal when
+          mock mode is off.
         </p>
+        <label>Select deal ({deals.length} found)</label>
         {deals.length > 0 ? (
           <select value={dealId} onChange={(e) => setDealId(e.target.value)}>
             {deals.map((d) => (
               <option key={d.id} value={d.id}>
-                {d.name} ({d.id}) {d.stage ? `— ${d.stage}` : ""}
+                {d.name}
+                {d.amount ? ` · $${d.amount}` : ""}
+                {d.stage ? ` · ${d.stage}` : ""} — {d.id}
               </option>
             ))}
           </select>
         ) : (
           <p className="muted">
-            {loadingDeals ? "Loading deals…" : "No deals found yet — refresh or create a sample."}
+            {loadingDeals ? "Loading deals…" : "No deals found yet — create one below."}
           </p>
         )}
-        <label>Or paste deal id</label>
-        <input
-          value={dealId}
-          onChange={(e) => setDealId(e.target.value)}
-          placeholder="HubSpot deal id"
-        />
         <div className="action-row">
           <button type="button" className="secondary" onClick={loadDeals} disabled={loadingDeals}>
             Refresh deals
           </button>
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => setShowCreateDeal((v) => !v)}
+            disabled={loadingDeals}
+          >
+            {showCreateDeal ? "Hide create form" : "Create new deal"}
+          </button>
           <button type="button" className="secondary" onClick={ensureDeal} disabled={loadingDeals}>
-            Create sample deal
+            Quick sample deal
           </button>
         </div>
+
+        {showCreateDeal && (
+          <div style={{ marginTop: "1rem", display: "grid", gap: "0.75rem" }}>
+            <div>
+              <label>Deal name</label>
+              <input
+                value={newDealName}
+                onChange={(e) => setNewDealName(e.target.value)}
+                placeholder="e.g. Meridian CareOps Phase 1"
+              />
+            </div>
+            <div className="grid-2-tight">
+              <div>
+                <label>Pipeline</label>
+                <select
+                  value={newDealPipelineId}
+                  onChange={(e) => setNewDealPipelineId(e.target.value)}
+                >
+                  {pipelines.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.label}
+                    </option>
+                  ))}
+                  {pipelines.length === 0 && <option value="">Default</option>}
+                </select>
+              </div>
+              <div>
+                <label>Deal stage</label>
+                <select
+                  value={newDealStageId}
+                  onChange={(e) => setNewDealStageId(e.target.value)}
+                >
+                  {stageOptions.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.label}
+                    </option>
+                  ))}
+                  {stageOptions.length === 0 && (
+                    <option value="appointmentscheduled">Appointment Scheduled</option>
+                  )}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label>Amount (optional)</label>
+              <input
+                value={newDealAmount}
+                onChange={(e) => setNewDealAmount(e.target.value)}
+                placeholder="120000"
+                inputMode="decimal"
+              />
+            </div>
+            <button type="button" onClick={createDeal} disabled={loadingDeals || !newDealName.trim()}>
+              Create deal in HubSpot
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="card">

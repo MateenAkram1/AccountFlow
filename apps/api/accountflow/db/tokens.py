@@ -2,25 +2,25 @@
 
 from __future__ import annotations
 
-import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from accountflow.core.config import ROOT_DIR
+from accountflow.core.config import data_dir
 from accountflow.core.security import decrypt_payload, encrypt_payload
+from accountflow.db.connection import connect_db, uses_turso
 
 
 class TokenStore:
     def __init__(self, db_path: Path | None = None) -> None:
-        self._path = db_path or (ROOT_DIR / "data" / "tokens.db")
-        self._path.parent.mkdir(parents=True, exist_ok=True)
+        # Local path only when not using Turso (keeps oauth tables in the same remote DB).
+        self._db_path = db_path if db_path is not None else (None if uses_turso() else data_dir() / "tokens.db")
+        if self._db_path is not None:
+            self._db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
 
-    def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self._path)
-        conn.row_factory = sqlite3.Row
-        return conn
+    def _connect(self):
+        return connect_db(db_path=self._db_path)
 
     def _init_db(self) -> None:
         with self._connect() as conn:

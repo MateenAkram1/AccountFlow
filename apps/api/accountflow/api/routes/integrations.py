@@ -67,14 +67,66 @@ async def list_hubspot_deals(user: CurrentUser = Depends(get_current_user)):
                 {
                     "id": "demo-001",
                     "name": "Acme Corp (mock)",
-                    "stage": "discovery",
+                    "stage": "appointmentscheduled",
                     "amount": "40000",
-                }
+                    "pipeline": "default",
+                },
+                {
+                    "id": "demo-002",
+                    "name": "Meridian CareOps (mock)",
+                    "stage": "qualifiedtobuy",
+                    "amount": "120000",
+                    "pipeline": "default",
+                },
             ]
         }
     try:
-        deals = await hubspot_client_for_user(user.id).list_deals()
+        deals = await hubspot_client_for_user(user.id).list_deals(limit=100)
         return {"deals": deals}
+    except CredentialsMissing as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=redact_text(str(e))) from e
+
+
+class CreateHubSpotDealRequest(BaseModel):
+    name: str
+    amount: str | None = None
+    stage_id: str | None = None
+    pipeline_id: str | None = None
+    close_date: str | None = None
+
+
+@router.get("/hubspot/pipelines")
+async def list_hubspot_pipelines(user: CurrentUser = Depends(get_current_user)):
+    """Deal pipelines + stages from HubSpot (for CRM dropdowns)."""
+    try:
+        pipelines = await hubspot_client_for_user(user.id).list_pipelines()
+        return {"pipelines": pipelines}
+    except CredentialsMissing as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=redact_text(str(e))) from e
+
+
+@router.post("/hubspot/deals")
+async def create_hubspot_deal(
+    body: CreateHubSpotDealRequest,
+    user: CurrentUser = Depends(get_current_user),
+    _: None = Depends(require_csrf),
+):
+    """Create a new HubSpot deal and return it."""
+    if not (body.name or "").strip():
+        raise HTTPException(status_code=400, detail="Deal name is required")
+    try:
+        deal = await hubspot_client_for_user(user.id).create_deal(
+            name=body.name.strip(),
+            amount=body.amount,
+            stage_id=body.stage_id,
+            pipeline_id=body.pipeline_id,
+            close_date=body.close_date,
+        )
+        return deal
     except CredentialsMissing as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
@@ -86,10 +138,16 @@ async def ensure_hubspot_deal(
     user: CurrentUser = Depends(get_current_user),
     _: None = Depends(require_csrf),
 ):
-    """Create a sample HubSpot deal if none exist."""
+    """Create a sample HubSpot deal (always creates a new deal)."""
     settings = get_settings()
     if settings.integrations_mock:
-        return {"id": "demo-001", "name": "Acme Corp (mock)", "created": False}
+        return {
+            "id": "demo-001",
+            "name": "Acme Corp (mock)",
+            "stage": "appointmentscheduled",
+            "amount": "40000",
+            "created": True,
+        }
     try:
         deal = await hubspot_client_for_user(user.id).ensure_demo_deal()
         return deal

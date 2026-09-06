@@ -1,0 +1,209 @@
+================================================================================
+STATEMENT OF WORK (SOW)
+CareOps Portal — Phase 1
+================================================================================
+
+Document ID:       NSW-SOW-MH-2026-014
+Effective Date:    January 15, 2026
+Parties:           Northstar Digital LLC (“Vendor”)
+                   Meridian Health Systems, Inc. (“Client”)
+Project Name:      CareOps Portal Phase 1
+Engagement Type:   Fixed-fee professional services
+Prepared by:       Alex Rivera, Engagement Lead, Northstar Digital
+Client sponsor:    Dana Okonkwo, VP of Digital Operations, Meridian Health Systems
+
+--------------------------------------------------------------------------------
+1. PURPOSE
+--------------------------------------------------------------------------------
+
+This Statement of Work defines the scope, timeline, fees, deliverables,
+assumptions, and exclusions for Phase 1 of the CareOps Portal engagement.
+Phase 1 delivers a staff-facing web application and REST API integration to
+support referral intake and clinician operational visibility. Work outside this
+document requires a written Change Request.
+
+--------------------------------------------------------------------------------
+2. PROJECT SUMMARY
+--------------------------------------------------------------------------------
+
+Vendor will design, build, test, and deploy a production-ready CareOps web
+portal for Meridian internal staff, integrated with Client’s existing EHR via
+read-oriented REST APIs, with SAML-based staff authentication against Client’s
+Okta tenant.
+
+Commercial envelope for Phase 1:
+  • Fixed fee: USD $120,000
+  • Change requests: billed separately under Section 8
+  • Client internal approval note: incremental changes above USD $15,000 require
+    CFO co-signature on the Client side (Client governance; informational only)
+
+--------------------------------------------------------------------------------
+3. IN-SCOPE SERVICES AND DELIVERABLES
+--------------------------------------------------------------------------------
+
+3.1 Web application (staff-facing)
+  a. Clinician operations dashboard (filters, referral queues, status views)
+  b. Referral intake forms with field validation and error messaging
+  c. Role-based access control for staff roles defined in discovery
+  d. In-app and email notifications for internal staff events
+  e. Simple CSV export of on-screen referral list fields (same columns visible
+     in the UI; no custom report builder)
+
+3.2 API integration
+  a. REST integration to Client EHR read APIs as specified in the integration
+     design workshop
+  b. Handling for documented rate limits (including caching where appropriate)
+  c. OpenAPI / REST API documentation package
+  d. No EHR write-back beyond scopes explicitly listed in the integration
+     design appendix (default: read-only for Phase 1)
+
+3.3 Authentication and security
+  a. Staff SSO via SAML 2.0 against Client Okta tenant
+  b. Security walkthrough support for Client information security reviewers
+  c. Deployment runbook including rollback outline for production cutover
+
+3.4 Program delivery cadence
+  a. Weekly status reports uploaded to the Client shared project folder
+  b. Mid-engagement syncs and go-live readiness checkpoints
+  c. Train-the-trainer session and materials for care coordinator leads
+     (one virtual session, up to 60 minutes)
+
+3.5 Acceptance deliverables checklist
+  a. Production-ready CareOps web application (Phase 1 feature set)
+  b. API documentation (including caching / rate-limit notes)
+  c. Deployment runbook
+  d. Training materials for train-the-trainer
+  e. Phase 1 acceptance certificate (signed at go-live acceptance)
+
+--------------------------------------------------------------------------------
+4. TIMELINE AND MILESTONES
+--------------------------------------------------------------------------------
+
+4.1 Kickoff:                    January 20, 2026
+4.2 Design freeze:              February 10, 2026
+4.3 UAT start:                  March 3, 2026
+4.4 Original go-live target:    March 31, 2026
+4.5 Phase 1 duration:           Approximately 10 weeks from kickoff to original
+                                go-live target
+
+Notes:
+  • Dates assume timely Client access to EHR sandbox credentials, Okta SAML
+    metadata, and UAT users.
+  • Any Client-requested movement of the go-live date (for example to
+    April 15, 2026) is a timeline change and shall be confirmed in writing.
+    Timeline changes do not automatically expand functional scope.
+
+--------------------------------------------------------------------------------
+5. FEES AND PAYMENT
+--------------------------------------------------------------------------------
+
+5.1 Fixed fee for Phase 1: USD $120,000
+5.2 Payment schedule:
+    a. 30% on SOW signature
+    b. 40% on UAT entry
+    c. 30% on Phase 1 acceptance certificate
+5.3 Expenses: pre-approved travel only; none anticipated for remote delivery
+5.4 Third-party license costs (EHR, Okta, SMS gateways, app stores) are Client
+    costs unless expressly added by Change Request
+
+--------------------------------------------------------------------------------
+6. EXCLUSIONS (NOT IN PHASE 1)
+--------------------------------------------------------------------------------
+
+The following are expressly out of scope for Phase 1 and require a Change
+Request or a separate Phase 2 SOW:
+
+6.1 Native mobile applications (iOS and/or Android)
+6.2 Offline mode / offline-first field data capture and sync
+6.3 Patient-facing consumer applications or patient portals
+6.4 Patient SMS / text message notifications or marketing messages
+6.5 Custom analytics warehouses, BI tool embedding, or scheduled report packs
+    beyond simple on-screen CSV export
+6.6 EHR write-back or order entry unless listed in the signed integration
+    appendix
+6.7 Migration of historical data beyond the mutually agreed cutover dataset
+6.8 24/7 managed SOC services (hypercare support is limited as in Section 7)
+
+--------------------------------------------------------------------------------
+7. HYPERCARE AND SUPPORT
+--------------------------------------------------------------------------------
+
+7.1 Vendor provides fourteen (14) calendar days of hypercare after production
+    go-live acceptance.
+7.2 Primary Vendor incident owner: Delivery Lead (named at go-live; default
+    Jordan Hale unless otherwise notified).
+7.3 Secondary for API/integration defects: Solutions Architect (default
+    Priya Nair unless otherwise notified).
+7.4 Severity definitions and response targets follow the Master Services
+    Agreement (MSA).
+
+--------------------------------------------------------------------------------
+8. CHANGE CONTROL
+--------------------------------------------------------------------------------
+
+8.1 Client or Vendor may propose changes in writing.
+8.2 Vendor will provide impact analysis covering scope, timeline, and fee.
+8.3 Work on out-of-scope items (including mobile apps, offline mode, and
+    patient SMS) shall not begin without a signed Change Request.
+8.4 Illustrative Phase 2 interest (non-binding): native iOS/Android companion
+    application with offline sync — estimated separately; not funded by the
+    Phase 1 fixed fee.
+
+--------------------------------------------------------------------------------
+9. CLIENT RESPONSIBILITIES
+--------------------------------------------------------------------------------
+
+9.1 Provide EHR API credentials, Okta SAML configuration, and environment access
+9.2 Nominate UAT participants and complete UAT feedback within agreed windows
+9.3 Complete internal compliance / change-management readiness for go-live
+9.4 Designate a single Client product owner empowered to accept deliverables
+9.5 Ensure recording and data-handling policies allow Vendor meeting notes and
+    approved tooling
+
+--------------------------------------------------------------------------------
+10. ASSUMPTIONS
+--------------------------------------------------------------------------------
+
+10.1 English-language UI and documentation only for Phase 1
+10.2 Hosting on Client-approved cloud account or Vendor hosting as selected in
+     the architecture decision record
+10.3 Peak concurrent staff users ≤ 500 for Phase 1 sizing
+10.4 No concurrent major EHR vendor upgrade during UAT without joint risk plan
+
+--------------------------------------------------------------------------------
+11. ACCEPTANCE
+--------------------------------------------------------------------------------
+
+11.1 Deliverables are accepted when Client signs the Phase 1 acceptance
+     certificate or when Client uses the production system in live operations
+     for five (5) consecutive business days without a Priority-1 defect open,
+     whichever occurs first, unless otherwise stated in the MSA.
+11.2 Phase 1 is not “Closed-Won” commercially until acceptance per 11.1 and
+     final invoice clearance under Section 5.
+
+--------------------------------------------------------------------------------
+12. AUTHORIZED CONTACTS
+--------------------------------------------------------------------------------
+
+Vendor engagement lead:   Alex Rivera — alex.rivera@northstar.example
+Vendor delivery lead:     Jordan Hale — jordan.hale@northstar.example
+Vendor architect:         Priya Nair — priya.nair@northstar.example
+
+Client sponsor:           Dana Okonkwo — dana.okonkwo@meridianhealth.example
+Client IT lead:           Marcus Bell — marcus.bell@meridianhealth.example
+Client clinical lead:     Elena Vargas — elena.vargas@meridianhealth.example
+
+--------------------------------------------------------------------------------
+13. SIGNATURES
+--------------------------------------------------------------------------------
+
+For Meridian Health Systems, Inc.          For Northstar Digital LLC
+
+Name: _______________________________      Name: _______________________________
+Title: ______________________________      Title: ______________________________
+Date: _______________________________      Date: _______________________________
+
+
+================================================================================
+END OF STATEMENT OF WORK — CareOps Portal Phase 1
+================================================================================

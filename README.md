@@ -8,6 +8,9 @@ AI OS Mini for the 5-Day Remote AI OS Sprint.
 
 **User (proxy):** Alex Rivera, AE/PM — see `docs/workflow/USER.md`
 
+**Live:** [Web](https://accountflow-web.vercel.app) · [API](https://accountflow-api.vercel.app)  
+**Demo fixtures:** `samples/demo/` (transcript + SOW)
+
 ---
 
 ## Quick start (3 steps)
@@ -53,9 +56,10 @@ Docker: `docker compose up --build`
 
 | Service | Target |
 |---------|--------|
-| **Web** | Vercel Hobby — root `vercel.json` → `apps/web` |
-| **API** | Render free — `render.yaml` → `apps/api` |
-| **Env** | `NEXT_PUBLIC_API_URL` on Vercel → Render API URL |
+| **Web** | Vercel — https://accountflow-web.vercel.app |
+| **API** | Vercel — https://accountflow-api.vercel.app |
+| **DB** | Turso (set `TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN` on API) |
+| **Env** | Web: `NEXT_PUBLIC_API_URL=https://accountflow-api.vercel.app` |
 
 ---
 

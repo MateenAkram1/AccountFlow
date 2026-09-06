@@ -2,38 +2,24 @@
 
 from __future__ import annotations
 
-import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Literal
 
-from accountflow.core.config import ROOT_DIR, get_settings
 from accountflow.core.security import decrypt_payload, encrypt_payload, mask_secret
+from accountflow.db.connection import connect_db
 
 ProviderName = Literal["hubspot", "jira", "llm", "stt"]
 VALID_PROVIDERS: set[str] = {"hubspot", "jira", "llm", "stt"}
 
 
-def _db_path(db_path: Path | None = None) -> Path:
-    if db_path:
-        return db_path
-    settings = get_settings()
-    if settings.database_url.startswith("sqlite:///"):
-        rel = settings.database_url.replace("sqlite:///", "")
-        return ROOT_DIR / rel
-    return ROOT_DIR / "data" / "accountflow.db"
-
-
 class SecretsVault:
     def __init__(self, db_path: Path | None = None) -> None:
-        self._path = _db_path(db_path)
-        self._path.parent.mkdir(parents=True, exist_ok=True)
+        self._db_path = db_path
         self._init_db()
 
-    def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self._path)
-        conn.row_factory = sqlite3.Row
-        return conn
+    def _connect(self):
+        return connect_db(db_path=self._db_path)
 
     def _init_db(self) -> None:
         with self._connect() as conn:

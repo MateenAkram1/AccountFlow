@@ -2,6 +2,17 @@
 
 Synthetic data for eval, baseline, and CLI demos. **No real client data.**
 
+## Demo recording (`demo/`)
+
+Preferred path for the Day 5 demo video (long, realistic fixtures):
+
+| File | Purpose |
+|------|---------|
+| `demo_meeting_transcript.txt` | Full post-call transcript for New Run paste |
+| `demo_sow.txt` | Matching SOW for Scope Verifier |
+
+Short creep demo alternative: `transcripts/tc03_scope_creep.txt` + `sow/acme_web_app.txt`.
+
 ## Transcripts (`transcripts/`)
 
 | File | Used by |
