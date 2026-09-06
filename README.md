@@ -56,8 +56,8 @@ Docker: `docker compose up --build`
 
 | Service | Target |
 |---------|--------|
-| **Web** | Vercel — https://accountflow-web.vercel.app |
-| **API** | Vercel — https://accountflow-api.vercel.app |
+| **Web** | Vercel — https://accountflow-web.vercel.app (Root Directory: `apps/web`) |
+| **API** | Vercel — https://accountflow-api.vercel.app (Root Directory: `apps/api`) |
 | **DB** | Turso (set `TURSO_DATABASE_URL` + `TURSO_AUTH_TOKEN` on API) |
 | **Env** | Web: `NEXT_PUBLIC_API_URL=https://accountflow-api.vercel.app` |
 
